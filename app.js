@@ -21,6 +21,8 @@ app.use(session({
     saveUninitialized: true,
 }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/applicant',require('./routes/applicant'));
-
+app.use('/', require('./routes/api'));
+app.use('/user', require('./routes/user'));
+app.use('/application', require('./routes/application'));
+app.use('/room', require('./routes/room'));
 module.exports = app;
