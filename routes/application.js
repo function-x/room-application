@@ -23,44 +23,19 @@ function getQuery(room, start, end, status) {
     };
 }
 
-function updateApplication() {
-    Application.findByIdAndUpdate(req.params._id, {
-        $set: {
-            status: status,
-            passport: passport,
-        }
-    }, function(err, application) {
-        if (err) {
-            console.log('update application err', err);
-            res.json({
-                code: -1,
-                msg: 'err',
-                body: {}
-            });
-        } else {
-            if (status == 'accepted') {
-            } else {
-                res.json({
-                    code: 0,
-                    msg: 'ok',
-                    body: {}
-                });
-            }
-        }
-    });
-}
-
 module.exports = require('express').Router()
     // view applications
-    .get('/room/:room', function(req, res, next) {
+    .get('/', function(req, res, next) {
+        var room = req.query.room;
         var start = req.query.start;
         var end = req.query.end;
+        var status = req.query.status;
         if (!start || !end) {
             // get applications in 24 hours
             start = Date.now();
             end = start + 86400000;
         }
-        query = getQuery(req.params.room, start, end);
+        query = getQuery(room, start, end, status);
         Application.find(query, function(err, applications) {
             if (err) {
                 console.log('find applications error', err);

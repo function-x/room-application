@@ -4,7 +4,7 @@ module.exports = require('express').Router()
     // view all users
     .get('/', grant.allowAdministrator)
     .get('/', function(req, res, next) {
-        User.find({}, function(err, users) {
+        User.find(req.query, function(err, users) {
             if (err) {
                 console.log('view user error', err);
                 res.json({
