@@ -111,6 +111,8 @@ module.exports = require('express').Router()
             }
         });
     })
+    // custom auth
+    .put('/:_id', grant.allowAdministrator)
     .put('/:_id', function(req, res, next) {
         Application.findByIdAndUpdate(req.params._id, req.body, function(err, application) {
             if (err) {
@@ -129,6 +131,7 @@ module.exports = require('express').Router()
             }
         });
     })
+    .delete('/:_id', grant.allowAdministrator)
     .delete('/:_id', function(req, res, next) {
         Application.remove({ _id: req.params._id }, function(err, application) {
             if (err) {
