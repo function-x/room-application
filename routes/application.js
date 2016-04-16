@@ -23,8 +23,16 @@ function getQuery(room, start, end) {
 
 module.exports = require('express').Router()
     // view applications
-    .get('/', function(req, res, next) {
-        Application.find(getQuery(req.query.room, req.query.start, req.query.end), function(err, applications) {
+    .get('/:room', function(req, res, next) {
+        var start = req.query.start;
+        var end = req.query.end;
+        if (!start || !end) {
+            // get applications in 24 hours
+            start = Date.now();
+            end = start + 86400000;
+        }
+        query = getQuery(req.params.room, start, end);
+        Application.find(query, function(err, applications) {
             if (err) {
                 console.log('find applications error', err);
                 res.json({
