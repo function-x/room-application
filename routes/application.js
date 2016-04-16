@@ -23,6 +23,33 @@ function getQuery(room, start, end, status) {
     };
 }
 
+function updateApplication() {
+    Application.findByIdAndUpdate(req.params._id, {
+        $set: {
+            status: status,
+            passport: passport,
+        }
+    }, function(err, application) {
+        if (err) {
+            console.log('update application err', err);
+            res.json({
+                code: -1,
+                msg: 'err',
+                body: {}
+            });
+        } else {
+            if (status == 'accepted') {
+            } else {
+                res.json({
+                    code: 0,
+                    msg: 'ok',
+                    body: {}
+                });
+            }
+        }
+    });
+}
+
 module.exports = require('express').Router()
     // view applications
     .get('/room/:room', function(req, res, next) {
@@ -164,10 +191,34 @@ module.exports = require('express').Router()
         var status = req.body.status;
         if (status == 'accepted') {
             // 6 digits random integer string
-            var passport = ('000000' + ~~(Math.random() * 1000000)).slice(-6);
+            req.body.passport = ('000000' + ~~(Math.random() * 1000000)).slice(-6);
+            // failed others conflict applications
+            Application.findAndUpdate(getQuery(application.room, application.startTime, application.endTime), {
+                $set: {
+                    status: 'failed',
+                    passport: null
+                }
+            }, function(err, application) {
+                if (err) {
+                    console.log('failed other applications err', err);
+                    res.json({
+                        code: -1,
+                        msg: 'err',
+                        body: {}
+                    })
+                } else {
+                    // and then accept the application
+                    next();
+                }
+            })
         } else {
-            var passport = null;
+            req.body.passport = null;
+            next();
         }
+    })
+    .put('/:_id', function(req, res, next) {
+        var status = req.body.status;
+        var passport = req.body.passport;
         Application.findByIdAndUpdate(req.params._id, {
             $set: {
                 status: status,
@@ -182,36 +233,11 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
-                if (status == 'accepted') {
-                    // failed others conflict applications
-                    Application.findAndUpdate(getQuery(application.room, application.startTime, application.endTime), {
-                        $set: {
-                            status: 'failed',
-                            passport: null
-                        }
-                    }, function(err, application) {
-                        if (err) {
-                            console.log('failed other applications err', err);
-                            res.json({
-                                code: -1,
-                                msg: 'err',
-                                body: {}
-                            })
-                        } else {
-                            res.json({
-                                code: 0,
-                                msg: 'ok',
-                                body: {}
-                            })
-                        }
-                    })
-                } else {
-                    res.json({
-                        code: 0,
-                        msg: 'ok',
-                        body: {}
-                    });
-                }
+                res.json({
+                    code: 0,
+                    msg: 'ok',
+                    body: {}
+                });
             }
         });
     })
