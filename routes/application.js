@@ -2,9 +2,10 @@ var Application = require('../models/application');
 var grant = require('./grant');
 var Room = require('../models/room');
 
-function getQuery(room, start, end) {
+function getQuery(room, start, end, status) {
     return {
         room: room,
+        status: status ? status : 'accepted',
         $or: [
             {
                 startTime: {
@@ -181,11 +182,36 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
-                res.json({
-                    code: 0,
-                    msg: '',
-                    body: {}
-                });
+                if (status == 'accepted') {
+                    // failed others conflict applications
+                    Application.findAndUpdate(getQuery(application.room, application.startTime, application.endTime), {
+                        $set: {
+                            status: 'failed',
+                            passport: null
+                        }
+                    }, function(err, application) {
+                        if (err) {
+                            console.log('failed other applications err', err);
+                            res.json({
+                                code: -1,
+                                msg: 'err',
+                                body: {}
+                            })
+                        } else {
+                            res.json({
+                                code: 0,
+                                msg: 'ok',
+                                body: {}
+                            })
+                        }
+                    })
+                } else {
+                    res.json({
+                        code: 0,
+                        msg: 'ok',
+                        body: {}
+                    });
+                }
             }
         });
     })
