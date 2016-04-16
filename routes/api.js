@@ -49,13 +49,7 @@ module.exports = require('express').Router()
             } else if (user) {
                 if (user.password == password) {
                     // auth successed
-                    req.session.userId = user._id;
-                    if (user.group == 'administrator') {
-                        req.session.admin = true;
-                    }
-                    if (user.group == 'gatekeeper') {
-                        req.session.gate = true;
-                    }
+                    req.session.userId = user;
                     res.json({
                         code: 0,
                         msg: 'ok',

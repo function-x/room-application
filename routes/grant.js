@@ -2,7 +2,7 @@
 // need express-session
 module.exports = {
     allowApplicant: function(req, res, next) {
-        if (req.session.userId) {
+        if (req.session.user) {
             next();
         } else {
             res.json({
@@ -13,7 +13,7 @@ module.exports = {
         }
     },
     allowAdministrator: function(req, res, next) {
-        if (req.session.userId && req.session.admin) {
+        if (req.session.user && req.session.user.group == 'administrator') {
             next();
         } else {
             res.json({
@@ -24,7 +24,7 @@ module.exports = {
         }
     },
     allowGateKeeper: function(req, res, next) {
-        if (req.session.userId && req.session.gate) {
+        if (req.session.user && req.session.user.group == 'gatekeeper') {
             next();
         } else {
             res.json({
