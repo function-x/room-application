@@ -54,47 +54,55 @@ module.exports = require('express').Router()
     // add application
     .post('/', grant.allowApplicant) // allow applicant
     .post('/', function(req, res, next) {
-        Application.find(getQuery(req.body.room, req.body.start, req.body.end), function(err, applications) {
-            if (err) {
-                console.log('find applications error', err);
-                res.json({
-                    code: -1,
-                    msg: 'err',
-                    body: {}
-                });
-            } else if (applications.length == 0) {
-                new Application({
-                    title: req.body.title,
-                    description: req.body.description,
-                    applicant: req.session.userId,
-                    room: req.body.room,
-                    startTime: req.body.start,
-                    endTime: req.body.end,
-                }).save(function(err, application) {
-                    if (err) {
-                        console.log('save applications error', err);
-                        res.json({
-                            code: -1,
-                            msg: 'err',
-                            body: {}
-                        });
-                    } else {
-                        res.json({
-                            code: 0,
-                            msg: 'ok',
-                            body: {}
-                        });
-                    }
-                });
-            } else {
-                applications.forEach(function(v) { v.passport = null })
-                res.json({
-                    code: 1,
-                    msg: 'busy',
-                    body: applications
-                });
-            }
-        });
+        if (req.body.end - req.body.start >= 0) { // minimum time
+            Application.find(getQuery(req.body.room, req.body.start, req.body.end), function(err, applications) {
+                if (err) {
+                    console.log('find applications error', err);
+                    res.json({
+                        code: -1,
+                        msg: 'err',
+                        body: {}
+                    });
+                } else if (applications.length == 0) {
+                    new Application({
+                        title: req.body.title,
+                        description: req.body.description,
+                        applicant: req.session.userId,
+                        room: req.body.room,
+                        startTime: req.body.start,
+                        endTime: req.body.end,
+                    }).save(function(err, application) {
+                        if (err) {
+                            console.log('save applications error', err);
+                            res.json({
+                                code: -1,
+                                msg: 'err',
+                                body: {}
+                            });
+                        } else {
+                            res.json({
+                                code: 0,
+                                msg: 'ok',
+                                body: {}
+                            });
+                        }
+                    });
+                } else {
+                    applications.forEach(function(v) { v.passport = null })
+                    res.json({
+                        code: 1,
+                        msg: 'busy',
+                        body: applications
+                    });
+                }
+            });
+        } else {
+            res.json({
+                code: 2,
+                msg: 'time too short',
+                body: {}
+            });
+        }
     })
     .get('/:_id', function(req, res, next) {
         Application.findById(req.params._id, function(err, application) {
