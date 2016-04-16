@@ -86,7 +86,7 @@ module.exports = require('express').Router()
         });
     })
     .get('/:_id', function(req, res, next) {
-        Application.findByIdAndUpdate(req.params._id, req.body, function(err, application) {
+        Application.findById(req.params._id, function(err, application) {
             if (err) {
                 console.log('get application err', err);
                 res.json({
