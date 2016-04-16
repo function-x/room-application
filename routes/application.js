@@ -1,5 +1,6 @@
 var Application = require('../models/application');
 var grant = require('./grant');
+var Room = require('../models/room');
 
 function getQuery(room, start, end) {
     return {
@@ -23,7 +24,7 @@ function getQuery(room, start, end) {
 
 module.exports = require('express').Router()
     // view applications
-    .get('/:room', function(req, res, next) {
+    .get('/room/:room', function(req, res, next) {
         var start = req.query.start;
         var end = req.query.end;
         if (!start || !end) {
@@ -41,6 +42,7 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
+                applications.forEach(function(v) { v.passport = null });
                 res.json({
                     code: 0,
                     msg: 'ok',
@@ -85,6 +87,7 @@ module.exports = require('express').Router()
                     }
                 });
             } else {
+                applications.forEach(function(v) { v.passport = null })
                 res.json({
                     code: 1,
                     msg: 'busy',
@@ -103,18 +106,65 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
-                res.json({
-                    code: 0,
-                    msg: '',
-                    body: application
-                });
+                // only the applicant and the gatekeeper can view the passport
+                if (req.session.user) {
+                    if (req.session.user.group == 'gatekeeper') {
+                        Room.findById(application.room, function(err, room) {
+                            if (err) {
+                                console.log('gatekeeper check room err', err);
+                                res.json({
+                                    code: -1,
+                                    msg: 'err',
+                                    body: {}
+                                });
+                            } else {
+                                if (room.gatekeeper != req.session.user._id) {
+                                    application.passport = null;
+                                }
+                                res.json({
+                                    code: 0,
+                                    msg: 'ok',
+                                    body: application
+                                });
+                            }
+                        })
+                    } else {
+                        if (req.session.user._id != application.applicant) {
+                            application.passport = null;
+                        }
+                        res.json({
+                            code: 0,
+                            msg: 'ok',
+                            body: application
+                        });
+                    }
+                } else {
+                    application.passport = null;
+                    res.json({
+                        code: 0,
+                        msg: 'ok',
+                        body: application
+                    });
+                }
             }
         });
     })
-    // custom auth
+    // only the administrator can update the application's status
     .put('/:_id', grant.allowAdministrator)
     .put('/:_id', function(req, res, next) {
-        Application.findByIdAndUpdate(req.params._id, req.body, function(err, application) {
+        var status = req.body.status;
+        if (status == 'accepted') {
+            // 6 digits random integer string
+            var passport = ('000000' + ~~(Math.random() * 1000000)).slice(-6);
+        } else {
+            var passport = null;
+        }
+        Application.findByIdAndUpdate(req.params._id, {
+            $set: {
+                status: status,
+                passport: passport,
+            }
+        }, function(err, application) {
             if (err) {
                 console.log('update application err', err);
                 res.json({

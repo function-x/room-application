@@ -22,5 +22,13 @@ module.exports = mongoose.model('application', new Schema({
     },
     endTime: {
         type: Date,
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'failed', 'accepted'],
+        default: 'pending',
+    },
+    passport: {
+        type: String,
     }
 }));

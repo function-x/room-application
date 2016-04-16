@@ -13,6 +13,9 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
+                users.forEach(function(v) {
+                    v.password = null;
+                });
                 res.json({
                     code: 0,
                     msg: 'ok',
@@ -32,6 +35,7 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
+                user.password = null; // hide the password
                 res.json({
                     code: 0,
                     msg: 'ok',
@@ -79,6 +83,7 @@ module.exports = require('express').Router()
                     body: {}
                 });
             } else {
+                // should I remove the related applications?
                 res.json({
                     code: 0,
                     msg: 'ok',

@@ -1,4 +1,6 @@
 var User = require('../models/user');
+var grant = require('./grant');
+
 module.exports = require('express').Router()
     .post('/signup', function(req, res, next) {
         var username = req.body.username;
@@ -49,7 +51,8 @@ module.exports = require('express').Router()
             } else if (user) {
                 if (user.password == password) {
                     // auth successed
-                    req.session.userId = user;
+                    user.password = null; // hide the password
+                    req.session.user = user;
                     res.json({
                         code: 0,
                         msg: 'ok',
@@ -69,6 +72,13 @@ module.exports = require('express').Router()
                     body: {}
                 });
             }
+        });
+    })
+    .get('/status', function(req, res, next) {
+        res.json({
+            code: 0,
+            msg: 'ok',
+            body: req.session.user
         });
     })
     .get('/signout', function(req, res, next) {
